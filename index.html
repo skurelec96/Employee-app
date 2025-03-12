@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="hr">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Pregled Zaposlenika</title>
+    <script>
+      function formatDate(dateStr) {
+        const date = new Date(dateStr);
+        const day = String(date.getDate()).padStart(2, "0");
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const year = date.getFullYear();
+        return `${day}-${month}-${year}`;
+      }
+
+      async function fetchEmployees() {
+        const response = await fetch("/employeesList");
+        const data = await response.json();
+        const employeeList = document.getElementById("employee-list");
+        employeeList.innerHTML = "";
+        data.forEach((employee) => {
+          const p = document.createElement("p");
+          const formattedStartDate = formatDate(employee.datum_pocetka);
+          p.innerHTML = `${employee.ime} ${employee.prezime} 
+                       <button onclick="viewEmployee(${employee.id})">Detalji</button>
+                       <button onclick="editEmployee(${employee.id})">Uredi</button>`;
+          employeeList.appendChild(p);
+        });
+      }
+
+      async function viewEmployee(id) {
+        const response = await fetch(`/employee/${id}`);
+        const employee = await response.json();
+        const formattedStartDate = formatDate(employee.datum_pocetka);
+        let contract_duration = "";
+        if (employee.vrsta_ugovora === "Određeno") {
+          contract_duration = `<p><strong>Trajanje ugovora:</strong> ${employee.trajanje_ugovora}</p>`;
+        }
+
+        document.getElementById("employee-details").innerHTML = `
+        <img src="${employee.putanja_slike}" alt="Slika zaposlenika" width="200"/>
+        <p><strong>Ime:</strong> ${employee.ime} ${employee.prezime}</p>
+        <p><strong>Spol:</strong> ${employee.spol}</p>
+        <p><strong>Godina rođenja:</strong> ${employee.godina_rodenja}</p>
+        <p><strong>Početak rada:</strong> ${formattedStartDate}</p>
+        <p><strong>Vrsta ugovora:</strong> ${employee.vrsta_ugovora}</p>
+      	${contract_duration}
+        <p><strong>Odjel:</strong> ${employee.odjel}</p>
+        <p><strong>Broj dana godišnjeg odmora:</strong> ${employee.broj_dana_godisnjeg_odmora}</p>
+        <p><strong>Broj slobodnih dana:</strong> ${employee.broj_slobodnih_dana}</p>
+        <p><strong>Broj dana plaćenog dopusta:</strong> ${employee.broj_dana_placenog_dopusta}</p>
+      `;
+      }
+
+      async function editEmployee(id) {
+        window.location.href = `/editEmployee/${id}`;
+      }
+
+      window.onload = fetchEmployees;
+    </script>
+  </head>
+  <body>
+    <h1>Popis Zaposlenika</h1>
+    <p id="employee-list"></p>
+    <br />
+    <a href="/addEmployee">Dodaj novog zaposlenika</a>
+    <br /><br />
+    <div id="employee-details"></div>
+  </body>
+</html>

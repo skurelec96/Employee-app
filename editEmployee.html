@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="hr">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Uredi Zaposlenika</title>
+    <script>
+      function formatDate(dateStr) {
+        const date = new Date(dateStr);
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
+        return `${year}-${month}-${day}`;
+      }
+      function showContractLength() {
+        const contractType = document.getElementById("contract_type").value;
+        const contractDurationField =
+          document.getElementById("contract_duration");
+        const contractDurationLabel = document.getElementById("contract_label");
+        if (contractType === "Oredeno") {
+          contractDurationField.style.display = "none";
+          contractDurationLabel.style.display = "none";
+          contractDurationField.removeAttribute("required");
+        } else {
+          contractDurationField.style.display = "block";
+          contractDurationLabel.style.display = "block";
+          contractDurationField.setAttribute("required", "");
+        }
+      }
+      window.onload = function () {
+        showContractLength();
+        document
+          .getElementById("contract_type")
+          .addEventListener("change", showContractLength);
+      };
+
+      async function fetchEmployeeDetails() {
+        const employeeId = window.location.pathname.split("/")[2];
+        const response = await fetch(`/employee/${employeeId}`);
+        const employee = await response.json();
+        const formattedStartDate = formatDate(employee.datum_pocetka);
+
+        document.getElementById("image-preview").src = employee.putanja_slike;
+        document.getElementById("original_image_path").value =
+          employee.putanja_slike;
+
+        document.getElementById("employee_id").value = employee.id;
+        document.getElementById("first_name").value = employee.ime;
+        document.getElementById("last_name").value = employee.prezime;
+        document.getElementById("gender").value = employee.spol;
+        document.getElementById("birth_year").value = employee.godina_rodenja;
+        document.getElementById("start_date").value = formattedStartDate;
+        document.getElementById("contract_type").value = employee.vrsta_ugovora;
+        document.getElementById("contract_duration").value =
+          employee.trajanje_ugovora;
+        document.getElementById("department").value = employee.odjel;
+        document.getElementById("vacation_days").value =
+          employee.broj_dana_godisnjeg_odmora;
+        document.getElementById("free_days").value =
+          employee.broj_slobodnih_dana;
+        document.getElementById("paid_leave_days").value =
+          employee.broj_dana_placenog_dopusta;
+      }
+
+      window.onload = fetchEmployeeDetails;
+
+      function handleFormSubmit(event) {
+        const fileInput = document.getElementById("image");
+        const originalImagePath = document.getElementById(
+          "original_image_path"
+        ).value;
+
+        if (fileInput.files.length == 0 && originalImagePath) {
+          const originalImageInput = document.createElement("input");
+          originalImageInput.type = "hidden";
+          originalImageInput.name = "image_path";
+          originalImageInput.value = originalImagePath;
+          event.target.appendChild(originalImageInput);
+        }
+      }
+      function toggleMoreInfo() {
+        const moreInfoSection = document.getElementById("more-info");
+        const button = document.getElementById("toggle-more-info");
+
+        if (
+          moreInfoSection.style.display === "none" ||
+          moreInfoSection.style.display === ""
+        ) {
+          moreInfoSection.style.display = "block";
+          button.textContent = "Manje informacija";
+        } else {
+          moreInfoSection.style.display = "none";
+          button.textContent = "Dodatne informacije";
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <h1>Uredi Zaposlenika</h1>
+    <form
+      action="/updateEmployee"
+      method="POST"
+      enctype="multipart/form-data"
+      onsubmit="handleFormSubmit(event)"
+    >
+      <input type="hidden" id="employee_id" name="id" />
+      <input type="hidden" id="original_image_path" name="original_image_path" />
+      <label for="first_name">Ime:</label><br />
+      <input
+        type="text"
+        id="first_name"
+        name="first_name"
+        required
+      /><br /><br />
+
+      <label for="last_name">Prezime:</label><br />
+      <input type="text" id="last_name" name="last_name" required /><br /><br />
+
+      <label for="gender">Spol:</label><br />
+      <select id="gender" name="gender" required>
+        <option value="Muški">Muško</option>
+        <option value="Ženski">Žensko</option></select
+      ><br /><br />
+
+      <label for="birth_year">Godina rođenja:</label><br />
+      <input
+        type="number"
+        id="birth_year"
+        name="birth_year"
+        required
+      /><br /><br />
+
+      <label for="start_date">Početak rada:</label><br />
+      <input
+        type="date"
+        id="start_date"
+        name="start_date"
+        required
+      /><br /><br />
+
+      <label for="contract_type">Vrsta ugovora:</label><br />
+      <select id="contract_type" name="contract_type" required>
+        <option value="Određeno">Određeno</option>
+        <option value="Neodređeno">Neodređeno</option></select
+      ><br /><br />
+
+      <label for="contract_duration" id="contract_label"
+        >Trajanje ugovora:</label
+      ><br />
+      <input
+        type="text"
+        id="contract_duration"
+        name="contract_duration"
+        required
+      /><br /><br />
+
+      <label for="department">Odjel:</label><br />
+      <input
+        type="text"
+        id="department"
+        name="department"
+        required
+      /><br /><br />
+
+      <button type="button" id="toggle-more-info" onclick="toggleMoreInfo()">
+        Dodatne informacije
+      </button>
+      <br /><br />
+      <div id="more-info" style="display: none">
+        <label for="vacation_days">Broj dana godišnjeg odmora:</label><br />
+        <input
+          type="number"
+          id="vacation_days"
+          name="vacation_days"
+          required
+        /><br /><br />
+
+        <label for="free_days">Broj slobodnih dana:</label><br />
+        <input
+          type="number"
+          id="free_days"
+          name="free_days"
+          required
+        /><br /><br />
+
+        <label for="paid_leave_days">Broj dana plaćenog dopusta:</label><br />
+        <input
+          type="number"
+          id="paid_leave_days"
+          name="paid_leave_days"
+          required
+        /><br /><br />
+      </div>
+      <label for="image">Slika:</label><br />
+      <img
+        id="image-preview"
+        alt="Slika zaposlenika"
+        style="width: 200px"
+      /><br /><br />
+      <input type="file" id="image" name="image" accept="image/*" /><br /><br />
+
+      <input type="submit" value="Spremi promjene" />
+    </form>
+  </body>
+</html>
